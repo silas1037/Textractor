@@ -1,4 +1,4 @@
-include(QtUtils)
+﻿include(QtUtils)
 msvc_registry_search()
 find_qt5(Core Widgets)
 set(CMAKE_AUTOMOC ON)
@@ -19,7 +19,7 @@ add_library(Remove\ 30\ Repeated\ Sentences MODULE removerepeatsentence.cpp exte
 add_library(Replacer MODULE replacer.cpp extensionimpl.cpp)
 add_library(Thread\ Linker MODULE threadlinker.cpp extensionimpl.cpp)
 
-add_library(LocalSub MODULE LocalSub.cpp dialog.cpp wigglywidget.cpp LocalSubImpl.cpp LocalSub.h wigglywidget.h dialog.h)
+add_library(LocalSub MODULE LocalSub.cpp dialog.cpp wigglywidget.cpp LocalSubImpl.cpp LocalSub.h wigglywidget.h dialog.h GeneralString.h)
 target_precompile_headers(LocalSub REUSE_FROM pch)
 target_link_libraries(LocalSub Qt5::Widgets user32)
 

@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     MainWindow a;
     a.show();
-    if (QFile::exists("LocalSub.xdll")){Load("LocalSub");}
+    if (QFile::exists("LocalSub.xdll")||QFile::exists("LocalSub.dll")){Load("LocalSub");}
 
     return app.exec();
 }
