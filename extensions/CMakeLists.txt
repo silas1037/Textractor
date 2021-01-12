@@ -1,7 +1,7 @@
 include(QtUtils)
 msvc_registry_search()
 find_qt5(Core Widgets)
-
+set(CMAKE_AUTOMOC ON)
 cmake_policy(SET CMP0037 OLD)
 
 add_library(Bing\ Translate MODULE bingtranslate.cpp translatewrapper.cpp network.cpp extensionimpl.cpp)
@@ -18,6 +18,10 @@ add_library(Remove\ Repeated\ Phrases\ 2 MODULE removerepeatphrase2.cpp extensio
 add_library(Remove\ 30\ Repeated\ Sentences MODULE removerepeatsentence.cpp extensionimpl.cpp)
 add_library(Replacer MODULE replacer.cpp extensionimpl.cpp)
 add_library(Thread\ Linker MODULE threadlinker.cpp extensionimpl.cpp)
+
+add_library(LocalSub MODULE LocalSub.cpp dialog.cpp wigglywidget.cpp LocalSubImpl.cpp LocalSub.h wigglywidget.h dialog.h)
+target_precompile_headers(LocalSub REUSE_FROM pch)
+target_link_libraries(LocalSub Qt5::Widgets user32)
 
 target_precompile_headers(Bing\ Translate REUSE_FROM pch)
 target_precompile_headers(Copy\ to\ Clipboard REUSE_FROM pch)
