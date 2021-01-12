@@ -1,9 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstdint>
-#include <string>
 
 
 struct InfoForExtension
@@ -25,3 +24,5 @@ struct SentenceInfo
 
 struct SKIP {};
 inline void Skip() { throw SKIP(); }
+
+bool loadText();

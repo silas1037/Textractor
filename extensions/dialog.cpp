@@ -1,11 +1,12 @@
 ﻿
 #include "dialog.h"
+#include "LocalSub.h"
 
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
 {
-
     config = new QSettings("localtrans.ini", QSettings::IniFormat);
+    config->setIniCodec("UTF-8");
     jpfile = config->value("jpdic","jpdic.txt").toString();
     zhfile = config->value("zhdic","zhdic.txt").toString();
     config->setValue("jpdic",jpfile);
@@ -181,28 +182,32 @@ Dialog::Dialog(QWidget *parent)
     //创建一个QSyStemTrayIcon的对象.
     QSystemTrayIcon *m_trayIcon = new QSystemTrayIcon();
     //设置图标.
-    m_trayIcon->setIcon(QIcon(":/G.ico"));
+    m_trayIcon->setIcon(QIcon("G.ico"));
     //设置右键菜单.
     m_trayIcon->setContextMenu(pMenu);
     m_trayIcon->show();
+
+    connect(this,&Dialog::jOverScreen,this, &Dialog::overScreen);
 }
 void Dialog::stringReloads()
 {
-
+    loadText();
 }
 void Dialog::mapChooser()
 {
-    QString jpdicNew = QFileDialog::getOpenFileName(NULL,QString::fromLocal8Bit("选择日文文本"),".","*.*");
+    QString jpdicNew = QFileDialog::getOpenFileName(NULL,QString::fromLocal8Bit("选择日文文本"),".","(*.txt);(*.*)");
     if(jpdicNew!=""){
         jpfile = jpdicNew;
     }
-    QString zhdicNew = QFileDialog::getOpenFileName(NULL,QString::fromLocal8Bit("选择中文文本"),".","*.*");
+    QString zhdicNew = QFileDialog::getOpenFileName(NULL,QString::fromLocal8Bit("选择中文文本"),".","(*.txt);(*.*)");
     if(zhdicNew!=""){
         zhfile = zhdicNew;
     }
+    qDebug()<<jpfile<<zhfile;
     config->setValue("jpdic",jpfile);
     config->setValue("zhdic",zhfile);
     config->sync();
+    loadText();
 }
 
 void Dialog::BGset()
@@ -356,6 +361,12 @@ void Dialog::overScreen()
                 point = QPoint(x,point.y());
             }
             move(point);
+}
+void Dialog::inputUpdate(std::wstring newText)
+{
+    wigglyWidget->setWText(newText);
+    wigglyWidget->ReSize();
+    emit jOverScreen();
 }
 
 void Dialog::mouseReleaseEvent(QMouseEvent *event)

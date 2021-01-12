@@ -1,4 +1,6 @@
 ﻿#include "LocalSub.h"
+
+#include <string>
 #include "dialog.h"
 #include "GeneralString.h"
 
@@ -27,9 +29,10 @@
 Dialog dialog;
 
 using namespace std;
-std::hash<std::wstring> h;
-map <size_t, LPCWSTR> m1;
-int mark = 0;
+std::hash<std::wstring> hash_encode;
+map <size_t, LPCWSTR> meatdic;
+
+
 static void make_console() {
     AllocConsole();
     freopen("CONOUT$", "w", stdout);
@@ -38,18 +41,18 @@ static void make_console() {
 }
 bool loadText()
 {
-
+    meatdic.clear();
     const std::locale empty_locale = std::locale::empty();
     typedef std::codecvt_utf8<wchar_t> converter_type;  //std::codecvt_utf16
     const converter_type* converter = new converter_type;
     const std::locale utf8_locale = std::locale(empty_locale, converter);
 
-    if (!QFile::exists("jpdic.txt")||!QFile::exists("zhdic.txt")){
+    if (!QFile::exists(dialog.jpfile)||!QFile::exists(dialog.zhfile)){
         return false;
     }
-    std::wifstream fin1("jpdic.txt");  //input
+    std::wifstream fin1(dialog.jpfile.toLocal8Bit());  //input
     fin1.imbue(utf8_locale);
-    std::wifstream fin2("zhdic.txt");  //input
+    std::wifstream fin2(dialog.zhfile.toLocal8Bit());  //input
     fin2.imbue(utf8_locale);
     std::wstring line1;
     std::wstring line2;
@@ -66,7 +69,7 @@ bool loadText()
         CString str2(line2.c_str());
 
         LPCWSTR lpcwStr = str2.AllocSysString();
-        m1.insert(pair<size_t, LPCWSTR>(h(line1), lpcwStr));
+        meatdic.insert(pair<size_t, LPCWSTR>(hash_encode(line1), lpcwStr));
         //printf("%s\n", (LPCTSTR)str);
         idx++;
     }
@@ -110,18 +113,20 @@ bool ProcessSentence(std::wstring& sentence, SentenceInfo sentenceInfo)
 {
     // Your code here...
     if (sentenceInfo["current select"] && sentenceInfo["process id"] != 0){
-        LPCWSTR resl = m1[h(sentence)];
+        LPCWSTR resl = meatdic[hash_encode(sentence)];
         if (resl != NULL) {
             output(resl);
             output("\n");
-            dialog.wigglyWidget->setWText(resl);
-            dialog.wigglyWidget->ReSize();
+            //dialog.wigglyWidget->setWText(resl);
+            //dialog.wigglyWidget->ReSize();
+            dialog.inputUpdate(resl);
         }
         else{
             output(sentence);
             //output("\n");
-            dialog.wigglyWidget->setWText(sentence);
-            dialog.wigglyWidget->ReSize();
+            //dialog.wigglyWidget->setWText(sentence);
+            //dialog.wigglyWidget->ReSize();
+            dialog.inputUpdate(sentence);
         }
 
     }

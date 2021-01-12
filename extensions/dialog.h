@@ -92,6 +92,10 @@ public:
     QLineEdit *lineEdit;
     bool debug=false;
 
+    void inputUpdate(std::wstring newText);
+signals:
+    void jOverScreen();
+
 public slots:
     void setDebug(){debug=!debug;/*debug?layout->addWidget(lineEdit):layout->removeWidget(lineEdit);*/ lineEdit->setVisible(debug);}
     void resizedialog(float x, float y);
