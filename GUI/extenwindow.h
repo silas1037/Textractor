@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "qtcommon.h"
 
@@ -28,3 +28,6 @@ private:
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	void dropEvent(QDropEvent* event) override;
 };
+
+
+bool Load(QString extenName);

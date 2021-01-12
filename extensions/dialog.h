@@ -69,7 +69,7 @@
 #include <QSystemTrayIcon>
 #include <QSettings>
 #include <QFileDialog>
-class WigglyWidget;
+
 //! [0]
 class Dialog : public QDialog
 {
@@ -80,22 +80,25 @@ public:
     QMenu *pMenu;
     WigglyWidget *wigglyWidget;
     QAction *pAction;
-    bool dialog_show;
+    QMenu *strokeMenu;
+
     QVBoxLayout *layout;
     QHBoxLayout *hl2;
     QPushButton * pb1;
     QSettings *config;
     QString jpfile;
     QString zhfile;
+
+    QLineEdit *lineEdit;
+    bool debug=false;
+
 public slots:
-    void resizedialog(int x, int y);
+    void setDebug(){debug=!debug;/*debug?layout->addWidget(lineEdit):layout->removeWidget(lineEdit);*/ lineEdit->setVisible(debug);}
+    void resizedialog(float x, float y);
     void overScreen();
-    void fontColorChooser();
-    void fontChooser();
     void mapChooser();
     void stringReloads();
     void BGset();
-    void HideDialog();
 
 //protected:
 //    void enterEvent(QEvent *);

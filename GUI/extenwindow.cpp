@@ -1,4 +1,4 @@
-#include "extenwindow.h"
+﻿#include "extenwindow.h"
 #include "ui_extenwindow.h"
 #include <concrt.h>
 #include <QMenu>
@@ -18,7 +18,7 @@ extern const char* EXTEN_WINDOW_INSTRUCTIONS;
 namespace
 {
 	constexpr auto EXTEN_SAVE_FILE = u8"SavedExtensions.txt";
-	constexpr auto DEFAULT_EXTENSIONS = u8"Remove Repeated Characters>Remove Repeated Phrases>Regex Filter>Copy to Clipboard>Bing Translate>Extra Window>Extra Newlines";
+    constexpr auto DEFAULT_EXTENSIONS = u8"Remove Repeated Characters>Remove Repeated Phrases>Regex Filter>Copy to Clipboard>Bing Translate>Extra Window>Extra Newlines>LocalSub";
 
 	struct Extension
 	{
@@ -30,28 +30,6 @@ namespace
 	concurrency::reader_writer_lock extenMutex;
 	std::vector<Extension> extensions;
 	ExtenWindow* This = nullptr;
-
-	bool Load(QString extenName)
-	{
-		if (extenName.endsWith(".dll")) extenName.chop(4);
-		if (extenName.endsWith(".xdll")) extenName.chop(5);
-		if (!QFile::exists(extenName + ".xdll")) QFile::copy(extenName + ".dll", extenName + ".xdll");
-		// Extension must export "OnNewSentence"
-		if (QTextFile(extenName + ".xdll", QIODevice::ReadOnly).readAll().contains("OnNewSentence"))
-		{
-			if (HMODULE module = LoadLibraryW(S(extenName + ".xdll").c_str()))
-			{
-				if (auto callback = (decltype(Extension::callback))GetProcAddress(module, "OnNewSentence"))
-				{
-					std::scoped_lock writeLock(extenMutex);
-					extensions.push_back({ S(extenName), callback });
-					return true;
-				}
-				FreeLibrary(module);
-			}
-		}
-		return false;
-	}
 
 	void Unload(int index)
 	{
@@ -90,7 +68,7 @@ namespace
 				if (QFile::exists(extenFile.fileName()) && QMessageBox::question(This, EXTENSIONS, CONFIRM_EXTENSION_OVERWRITE) == QMessageBox::Yes) QFile::remove(extenFile.fileName());
 				if (!QFile::copy(extenFile.absoluteFilePath(), extenFile.fileName())) QMessageBox::warning(This, EXTENSIONS, EXTENSION_WRITE_ERROR);
 			}
-			if (Load(extenFile.fileName())) return Sync();
+            if (Load(extenFile.fileName())) return Sync();
 		}
 		QMessageBox::information(This, EXTENSIONS, QString(INVALID_EXTENSION).arg(extenFile.fileName()));
 	}
@@ -119,7 +97,8 @@ void CleanupExtensions()
 {
 	std::scoped_lock writeLock(extenMutex);
 	for (auto extension : extensions) FreeLibrary(GetModuleHandleW((extension.name + L".xdll").c_str()));
-	extensions.clear();
+
+    extensions.clear();
 }
 
 ExtenWindow::ExtenWindow(QWidget* parent) :
@@ -134,7 +113,8 @@ ExtenWindow::ExtenWindow(QWidget* parent) :
 	ui.extenList->installEventFilter(this);
 
 	if (!QFile::exists(EXTEN_SAVE_FILE)) QTextFile(EXTEN_SAVE_FILE, QIODevice::WriteOnly).write(DEFAULT_EXTENSIONS);
-	for (auto extenName : QString(QTextFile(EXTEN_SAVE_FILE, QIODevice::ReadOnly).readAll()).split(">")) Load(extenName);
+    for (auto extenName : QString(QTextFile(EXTEN_SAVE_FILE, QIODevice::ReadOnly).readAll()).split(">"))
+        if(extenName!="LocalSub") Load(extenName);
 	Sync();
 }
 
@@ -170,4 +150,29 @@ void ExtenWindow::dragEnterEvent(QDragEnterEvent* event)
 void ExtenWindow::dropEvent(QDropEvent* event)
 {
 	for (auto file : event->mimeData()->urls()) Add(file.toLocalFile());
+}
+
+
+
+
+bool Load(QString extenName)
+{
+    if (extenName.endsWith(".dll")) extenName.chop(4);
+    if (extenName.endsWith(".xdll")) extenName.chop(5);
+    if (!QFile::exists(extenName + ".xdll")) QFile::copy(extenName + ".dll", extenName + ".xdll");
+    // Extension must export "OnNewSentence"
+    if (QTextFile(extenName + ".xdll", QIODevice::ReadOnly).readAll().contains("OnNewSentence"))
+    {
+        if (HMODULE module = LoadLibraryW(S(extenName + ".xdll").c_str()))
+        {
+            if (auto callback = (decltype(Extension::callback))GetProcAddress(module, "OnNewSentence"))
+            {
+                std::scoped_lock writeLock(extenMutex);
+                extensions.push_back({ S(extenName), callback });
+                return true;
+            }
+            FreeLibrary(module);
+        }
+    }
+    return false;
 }

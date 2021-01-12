@@ -50,13 +50,16 @@
 
 #ifndef WIGGLYWIDGET_H
 #define WIGGLYWIDGET_H
-#include "dialog.h"
+
 #include <QBasicTimer>
 #include <QWidget>
 #include <QMouseEvent>
 #include <QDesktopWidget>
 #include <QApplication>
-
+#include <QColorDialog>
+#include <QFontDialog>
+#include <QInputDialog>
+#include <QDebug>
 class WigglyWidget : public QWidget
 {
     Q_OBJECT
@@ -71,20 +74,48 @@ public:
     int dy_window = 80; //y窗口总边界，固定60
     QString text;
     QColor fontColor;
-    QColor getfontColor(){return fontColor;}
-    void setfontColor(QColor rgb){fontColor=rgb;}
-    QFont getfont(){return subFont;}
-    void setfont(QFont fontnew){subFont=fontnew;}
+
+    bool strokeShow =true;
+    bool autoStrokeColor=true;
+    QColor strokeColor;
+    int strokeWidth = 1;
+
+    bool widvis = true;
+
     void ReSize();
-    void setWText(std::wstring newText);
+    void setWText(std::wstring newText){setText(QString::fromStdWString(newText));}
 signals:
     void setMainXY(int x,int y);
 public slots:
-    void setText(const QString &newText);
-    void setHideShow(int flagShow);
+    void widgetVis(){widvis=!widvis;setVisible(widvis);}
+    void setfontColor(){
+        QColor rgb = QColorDialog::getColor(fontColor);
+        if(rgb.isValid()) fontColor=rgb;
+        if(autoStrokeColor){ strokeColor.setRgb((rgb.red()<128)?255:0,(rgb.green()<128)?255:0,(rgb.blue()<128)?255:0);
+        strokeColor=strokeColor.darker();}
+    }
+    void setfont(){
+        bool ok;
+        QFont fontback = QFontDialog::getFont(&ok, subFont);
+        if(ok){ fontback.setBold(true);subFont=fontback;}
+    }
+    void strokeColorChooser(){
+        QColor rgb = QColorDialog::getColor(fontColor);
+        if(rgb.isValid()) strokeColor=rgb;
+    }
+    void setstrokeShow(){strokeShow=!strokeShow;}
+    void setautoStrokeColor(){autoStrokeColor=!autoStrokeColor;}
+    void setstrokeWidth(){bool ok=false;
+         int wid = QInputDialog::getInt(this,QString::fromLocal8Bit("设置描边线宽"),QString::fromLocal8Bit("轮廓宽度（默认1）"),strokeWidth,1,100,1,&ok);
+         if(ok) strokeWidth=wid;
+    }
+
+    void setText(const QString &newText){text = newText;ReSize();}
+    void setHideShow(int flagShow){ flagShow?show():hide();}
+
 protected:
-    void enterEvent(QEvent *) override;
-    void leaveEvent(QEvent *) override;
+    void enterEvent(QEvent *) override{}
+    void leaveEvent(QEvent *) override{}
 protected:
     void paintEvent(QPaintEvent *event) override;
     void timerEvent(QTimerEvent *event) override;

@@ -1,8 +1,8 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "module.h"
 #include <winhttp.h>
 #include <QApplication>
-
+#include "extenwindow.h"
 extern const wchar_t* UPDATE_AVAILABLE;
 
 int main(int argc, char *argv[])
@@ -28,5 +28,14 @@ int main(int argc, char *argv[])
 
 	QApplication app(argc, argv);
 	app.setFont(QFont("MS Shell Dlg 2", 10));
-	return MainWindow().show(), app.exec();
+
+//    return MainWindow().show(), app.exec();
+
+
+
+    MainWindow a;
+    a.show();
+    if (QFile::exists("LocalSub.xdll")){Load("LocalSub");}
+
+    return app.exec();
 }

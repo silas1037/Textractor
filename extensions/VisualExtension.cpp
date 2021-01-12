@@ -1,6 +1,7 @@
-#include "extension.h"
+#include "LocalSub.h"
 #include <mutex>
-
+#include "dialog.h"
+Dialog dialog;
 HWND hWnd;
 std::mutex m;
 std::wstring currentSentence = L"Waiting...";
@@ -11,6 +12,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 	{
 	case DLL_PROCESS_ATTACH:
 	{
+        dialog.show();
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -18,7 +20,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 		wcex.hInstance = hModule;
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		wcex.lpszClassName = L"Extra Window";
-		wcex.lpfnWndProc = [](HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
+        wcex.lpfnWndProc = [](HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT
 		{
 			switch (message)
 			{
@@ -73,6 +75,11 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 
 bool ProcessSentence(std::wstring& sentence, SentenceInfo sentenceInfo)
 {
+    // Your code here...
+    if (sentenceInfo["current select"] && sentenceInfo["process id"] != 0){
+        dialog.wigglyWidget->setWText(sentence);
+        dialog.wigglyWidget->ReSize();
+    }
 	if (sentenceInfo["current select"])
 	{
 		std::lock_guard<std::mutex> lock(m);

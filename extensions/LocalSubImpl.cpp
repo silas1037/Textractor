@@ -1,4 +1,4 @@
-﻿#include "LocalSub.h"
+#include "LocalSub.h"
 
 bool ProcessSentence(std::wstring& sentence, SentenceInfo sentenceInfo);
 

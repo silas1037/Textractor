@@ -2,9 +2,9 @@
 #include "dialog.h"
 
 Dialog::Dialog(QWidget *parent)
-    : QDialog(parent),dialog_show(true)
+    : QDialog(parent)
 {
-    qDebug()<<"LocalSub is mounted now!";
+
     config = new QSettings("localtrans.ini", QSettings::IniFormat);
     jpfile = config->value("jpdic","jpdic.txt").toString();
     zhfile = config->value("zhdic","zhdic.txt").toString();
@@ -14,10 +14,9 @@ Dialog::Dialog(QWidget *parent)
     //qDebug()<<jpfile<<zhfile;
     wigglyWidget = new WigglyWidget;
 
-    QLineEdit *lineEdit = new QLineEdit;
+    lineEdit = new QLineEdit;
     lineEdit->setStyleSheet("background-color: rgb(102, 102, 102);"); //color: rgb(102, 102, 102);
-
-    QLineEdit *lineEdit2 = new QLineEdit;
+    lineEdit->setVisible(false);
 
     pb1 = new QPushButton();
     pb1->setVisible(false);
@@ -35,24 +34,21 @@ Dialog::Dialog(QWidget *parent)
 
 
     layout = new QVBoxLayout(this);
-    layout->addWidget(wigglyWidget);
     layout->addWidget(lineEdit);
+    layout->addWidget(wigglyWidget);
+
     hl2=new QHBoxLayout(this);
     //hl2->addWidget(lineEdit2);
     //hl2->addWidget(pb1);
     //hl2->addWidget(lineEdit);
     //layout->addLayout(hl2);
 
-
     connect(lineEdit, &QLineEdit::textChanged, this, &Dialog::overScreen);
     connect(lineEdit, &QLineEdit::textChanged, wigglyWidget, &WigglyWidget::setText);
-
     connect(wigglyWidget, &WigglyWidget::setMainXY, this, &Dialog::resizedialog); //set xy
-    //connect(wigglyWidget, SIGNAL(setMainXY(int x,int y)), this, SLOT(resizedialog(int x, int y))); //set xy
 
     //初始位置
-    move(QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().x()/3,\
-         QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().y());
+    move(QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().x()/3,QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().y());
     //setWindowTitle(tr("Wiggly"));
     resize(360, 145); //-280 -335
     lineEdit->setText(QString::fromLocal8Bit("Bishojo Game 美少女游戏"));
@@ -61,13 +57,13 @@ Dialog::Dialog(QWidget *parent)
     //透明度
     //setWindowOpacity(0.2);
     //透明
-    this->setAttribute(Qt::WA_TranslucentBackground, true);//需要设置
+    setAttribute(Qt::WA_TranslucentBackground, true);//需要设置
 //    setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_PaintOnScreen);
     //无边框
     setWindowFlag(Qt::FramelessWindowHint);
     //置顶
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint); // | Qt::Tool);
     show();
 
 
@@ -75,20 +71,65 @@ Dialog::Dialog(QWidget *parent)
 
     //创建弹出菜单对象
     pMenu = new QMenu(this);//pMenu 为类成员变量
+    strokeMenu = new QMenu(this);
+
     {
     QAction *pAction = new QAction(pMenu);
     pAction->setText("font color");//设置文字
     //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
     pMenu->addAction(pAction);//action添加到menu中
-    connect(pAction,SIGNAL(triggered()),this,SLOT(fontColorChooser()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(setfontColor()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
     }
     {
     QAction *pAction = new QAction(pMenu);
     pAction->setText("font");//设置文字
     //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
     pMenu->addAction(pAction);//action添加到menu中
-    connect(pAction,SIGNAL(triggered()),this,SLOT(fontChooser()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(setfont()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
     }
+
+
+    {
+    QAction *pAction = new QAction(pMenu);
+    pAction->setText("stroke");//设置文字
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    pMenu->addAction(pAction);//action添加到menu中
+    pAction->setMenu(strokeMenu);
+    //connect(pAction,SIGNAL(triggered()),this,SLOT(fontChooser()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+    {
+    QAction *pAction = new QAction(strokeMenu);
+    pAction->setText("show/hide");//设置文字
+    pAction->setCheckable(true);
+    pAction->setChecked(true);
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    strokeMenu->addAction(pAction);//action添加到menu中
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(setstrokeShow()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+    {
+    QAction *pAction = new QAction(strokeMenu);
+    pAction->setText("stroke width");//设置文字
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    strokeMenu->addAction(pAction);//action添加到menu中
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(setstrokeWidth()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+    {
+    QAction *pAction = new QAction(strokeMenu);
+    pAction->setText("stroke color");//设置文字
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    strokeMenu->addAction(pAction);//action添加到menu中
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(strokeColorChooser()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+    {
+    QAction *pAction = new QAction(strokeMenu);
+    pAction->setText("auto color");//设置文字
+    pAction->setCheckable(true);
+    pAction->setChecked(true);
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    strokeMenu->addAction(pAction);//action添加到menu中
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(setautoStrokeColor()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+/*****/
     {
     QAction *pAction = new QAction(pMenu);
     pAction->setText("reload text");//设置文字
@@ -116,16 +157,31 @@ Dialog::Dialog(QWidget *parent)
     }
     {
     QAction *pAction = new QAction(pMenu);
-    pAction->setText("Hide/Show");//设置文字
+    pAction->setText("debug");//设置文字
+    pAction->setCheckable(true);
+    pAction->setChecked(false);
     //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
     pMenu->addAction(pAction);//action添加到menu中
-    connect(pAction,SIGNAL(triggered()),this,SLOT(HideDialog()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    connect(pAction,SIGNAL(triggered()),this,SLOT(setDebug()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
     }
+    {
+    QAction *pAction = new QAction(pMenu);
+    pAction->setText("Hide/Show");//设置文字
+    pAction->setCheckable(true);
+    pAction->setChecked(true);
+    //pAction->setIcon(QIcon(":/new/prefix1/forbidPNG"));//设置图标
+    pMenu->addAction(pAction);//action添加到menu中
+    connect(pAction,SIGNAL(triggered()),wigglyWidget,SLOT(widgetVis()));//关联事件响应函数，选择菜单中的action后，触发槽函数执行
+    }
+
+    //主菜单添加子菜单
+    pMenu->addMenu(strokeMenu);
+
 
     //创建一个QSyStemTrayIcon的对象.
     QSystemTrayIcon *m_trayIcon = new QSystemTrayIcon();
     //设置图标.
-    m_trayIcon->setIcon(QIcon("G.ico")); //":/G.ico"
+    m_trayIcon->setIcon(QIcon(":/G.ico"));
     //设置右键菜单.
     m_trayIcon->setContextMenu(pMenu);
     m_trayIcon->show();
@@ -149,13 +205,6 @@ void Dialog::mapChooser()
     config->sync();
 }
 
-void Dialog::HideDialog()
-{
-    dialog_show=!dialog_show;
-    //pb1->setVisible(true);
-    wigglyWidget->setVisible(dialog_show);
-}
-
 void Dialog::BGset()
 {
     //5.13 不能工作
@@ -174,28 +223,28 @@ void Dialog::BGset()
     }
 }
 
-void Dialog::fontColorChooser(){
-    QColor color = QColorDialog::getColor(wigglyWidget->getfontColor()); //getRgba(wigglyWidget->getfontColor().rgba());
-    if(color.isValid())
-        wigglyWidget->setfontColor(color);
-    //qDebug()<<color;
-}
+//void Dialog::fontColorChooser(){
+//    QColor color = QColorDialog::getRgba(wigglyWidget->getfontColor().rgba());
+//    if(color.isValid())
+//        wigglyWidget->setfontColor(color);
+//    //qDebug()<<color;
+//}
 
-void Dialog::fontChooser()
-{
-    bool ok;
-    QFont fontback = QFontDialog::getFont(&ok, wigglyWidget->getfont());
+//void Dialog::fontChooser()
+//{
+//    bool ok;
+//    QFont fontback = QFontDialog::getFont(&ok, wigglyWidget->getfont());
 
-//    qDebug()<<"test2"<<fontdia;
-    if(ok){
-        fontback.setBold(true);
-        //qDebug()<<"test2"<<wigglyWidget->getfont()<<endl<<fontback;
-        wigglyWidget->setfont(fontback); //seems bug
-        wigglyWidget->ReSize();
-    }
-}
+////    qDebug()<<"test2"<<fontdia;
+//    if(ok){
+//        fontback.setBold(true);
+//        //qDebug()<<"test2"<<wigglyWidget->getfont()<<endl<<fontback;
+//        wigglyWidget->setfont(fontback); //seems bug
+//        wigglyWidget->ReSize();
+//    }
+//}
 
-void Dialog::resizedialog(int x, int y)
+void Dialog::resizedialog(float x, float y)
 {
     resize(x+20,y);
 }
@@ -280,7 +329,7 @@ void Dialog::overScreen()
             QRect windowRect(desktop->availableGeometry(this));
             QRect widgetRect(this->geometry());
 
-            //qDebug()<<QRect(QApplication::desktop()->availableGeometry()).bottomRight().x()<<QRect(QApplication::desktop()->availableGeometry()).bottomRight().y();
+            //qDebug()<<QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().x()<<QRect(QApplication::desktop()->availableGeometry(this)).bottomRight().y();
 
     //以下是防止窗口拖出可见范围外
     QPoint point=m_windowPoint;
