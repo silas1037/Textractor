@@ -19,7 +19,8 @@ add_library(Remove\ 30\ Repeated\ Sentences MODULE removerepeatsentence.cpp exte
 add_library(Replacer MODULE replacer.cpp extensionimpl.cpp)
 add_library(Thread\ Linker MODULE threadlinker.cpp extensionimpl.cpp)
 
-add_library(LocalSub MODULE LocalSub.cpp dialog.cpp wigglywidget.cpp LocalSubImpl.cpp LocalSub.h wigglywidget.h dialog.h GeneralString.h)
+add_library(LocalSub MODULE LocalSub.cpp dialog.cpp wigglywidget.cpp LocalSubImpl.cpp
+    LocalSub.h wigglywidget.h dialog.h GeneralString.h G.ico)
 target_precompile_headers(LocalSub REUSE_FROM pch)
 target_link_libraries(LocalSub Qt5::Widgets user32)
 
